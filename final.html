@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebVR Building</title>
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.min.js"></script>
+<script src="../../../dist/aframe-master.js"></script>
+<script src="https://unpkg.com/aframe-environment-component@1.3.4/dist/aframe-environment-component.min.js"></script>
+<script src="../../js/info-message.js"></script>
+<script src="highlight.js"></script>
+<script src="info-panel.js"></script>
+</head>
+<body>
+
+<!-- Scene -->
+<a-scene keyboard-shortcuts="enterVR: true" frame="90" renderer="colorManagement: true"><a-entity>
+<!-- Sky -->
+<a-sky src="http://localhost:8000/assets/SKY.jpg" color="green"></a-sky>
+
+<!-- Ground -->
+<a-plane src="http://localhost:8000/assets/GRND.jpg" rotation="-90 0 0" width="400" height="400"></a-plane>
+
+<!-- Video Source -->
+<a-video src="http://localhost:8000//assets//Earth'sEvolutionin10Minutes.mkv" width="80" height="40" position="0 20 -150" rotation="0 0 0"></a-video>
+
+<!-- Models/Objects -->
+<!-- Dome Structure-->
+<a-entity gltf-model="http://localhost:8000//assets/dome_final.gltf" position="25 52.5 -120" scale="10 10 10" rotation="-90 -120 0" ></a-entity>
+
+<!-- 6 million / First room to the Right-->
+<a-entity gltf-model="http://localhost:8000//assets/human/caveman.glb" position="100 0 -110" scale="0.1 0.1 0.1" rotation="0 -20 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/human/cave_painting.glb" position="130 2.2 -80" scale="0.1 0.1 0.1" rotation="0 -90 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/human/hill_giant.glb" position="90 0 -75" scale="1 1 1" rotation="0 -120 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+
+<!-- 250 million / Second room to the Right -->
+<a-entity gltf-model="http://localhost:8000//assets/ankylosaurus.gltf" position="135 5 -205" scale="0.3 0.3 0.3" rotation="-90 -90 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/apatosaurs.gltf" position="100 12.5 -184" scale="1 1 1" rotation="-90 -100 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/t_rex.gltf" position="90 12.4 -230" scale="0.5 0.5 0.5" rotation="-90 -10 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/trex.gltf" position="100 6.2 -200" scale="1.4 1.4 1.4" rotation="-90 -45 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+
+<!-- 2.4 billion / Second room to the Left -->
+<a-entity gltf-model="http://localhost:8000//assets/trilobite_hamatolenus_myopsolenus_sp.glb" position="-110 10 -220" scale="1.4 1.4 1.4" rotation="-35 0 0" response-type="arraybuffer" crossorigin="anonymous"></a-entity>
+
+<!-- Big Bang / First room to the Left-->
+<a-entity gltf-model="http://localhost:8000//assets/Solar/milky_way.glb" position="-130 10 -100" scale="0.03 0.03 0.03" rotation="0 20 -90" response-type="arraybuffer" crossorigin="anonymous" animation="property: rotation; to: -360 30 -20; loop: true; dur: 10000"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/Solar/sun.glb" position="-95 10 -110" scale="1.3 1.3 1.3" rotation="0 20 -90" response-type="arraybuffer" crossorigin="anonymous" animation="property: rotation; to: -360 30 -20; loop: true; dur: 10000"></a-entity>
+<a-entity gltf-model="http://localhost:8000//assets/Solar/particles.glb" position="-90 12 -65" scale="8 8 8" rotation="0 20 -90" response-type="arraybuffer" crossorigin="anonymous" animation="property: rotation; to: -360 30 -20; loop: true; dur: 10000"></a-entity>
+
+
+<!-- Player (Camera) -->
+<a-entity id="player" position="0 1.5 0" camera look-controls collision wasd-controls="acceleration: 120 "></a-entity>
+</a-entity>
+<script>
+    // Tried Collision multiple times was not successful...
+    AFRAME.registerComponent('collision-check', {
+    dependencies: ['position'],
+
+    init: function () {
+    this.el.addEventListener('componentchanged', function (evt) {
+        if (evt.detail.name !== 'position') { return; }
+        var position = this.getAttribute('position');
+        // Check if the new position is inside the box/plane. If it is, reset the position.
+        if (isInsideBox(position)) {
+        this.setAttribute('position', this.previousPosition);
+        } else {
+        this.previousPosition = position;
+        }
+    });
+    }
+});
+
+function isInsideBox(position) {
+    // Replace the following condition with the actual condition that checks if the position is inside the box/plane.
+    return position.x > 1 && position.x < 2 && position.y > 1 && position.y < 2 && position.z > 1 && position.z < 2;
+}
+
+<a-entity id="camera" camera look-controls wasd-controls collision-check></a-entity>
+</script>
+
+<script>
+
+var player = document.getElementById('player');
+var position = player.getAttribute('position');
+var velocity = new THREE.Vector3(); // Velocity vector for smooth motion
+var moveSpeed = 0.3; // Adjust movement speed here
+
+// Additional controls added for perspective view
+document.addEventListener('keydown', function (event) {
+    switch (event.key) {
+        case ' ':
+            velocity.y = moveSpeed; // Move up
+            break;
+        case 'Shift':
+            velocity.y = -moveSpeed; // Move down
+            break;
+        case 'R':
+        case 'r':
+            position.y = 5;
+    }
+});
+document.addEventListener('keyup', function (event) {
+    switch (event.key) {
+        case ' ':
+        case 'R':
+        case 'r':
+        case 'Shift':
+            velocity.y = 0; // Stop moving up/down
+            break;
+    }
+});
+
+// Base Function for additional controls
+function updatePosition() {
+    position.x += velocity.x;
+    position.y += velocity.y;
+    position.z += velocity.z;
+    player.setAttribute('position', position);
+    requestAnimationFrame(updatePosition);
+}
+
+updatePosition(); // Calling the function to initiate movement update
+</script>
+
+</a-scene>
+</body>
+</html>
